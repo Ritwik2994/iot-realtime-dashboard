@@ -28,13 +28,10 @@ if [ ! -f "$ENV_FILE" ]; then
     exit 1
 fi
 
-# Create logs directory
-echo -e "${YELLOW}📁 Creating logs directory...${NC}"
-mkdir -p logs
-
 # Load environment variables
 echo -e "${YELLOW}📋 Loading environment variables...${NC}"
-export $(cat $ENV_FILE | grep -v '^#' | xargs)
+# Use docker-compose env-file instead of export to avoid parsing issues
+# export $(cat $ENV_FILE | grep -v '^#' | sed 's/#.*$//' | grep -v '^$' | xargs)
 
 # Build and deploy
 echo -e "${YELLOW}🔨 Building and deploying services...${NC}"
@@ -54,31 +51,6 @@ else
     echo -e "${RED}❌ Backend health check failed${NC}"
 fi
 
-# Check Grafana
-if curl -f http://localhost:3001 > /dev/null 2>&1; then
-    echo -e "${GREEN}✅ Grafana is running${NC}"
-else
-    echo -e "${RED}❌ Grafana health check failed${NC}"
-fi
-
-# Check Kibana
-if curl -f http://localhost:5601 > /dev/null 2>&1; then
-    echo -e "${GREEN}✅ Kibana is running${NC}"
-else
-    echo -e "${RED}❌ Kibana health check failed${NC}"
-fi
-
-# Check Prometheus
-if curl -f http://localhost:9090 > /dev/null 2>&1; then
-    echo -e "${GREEN}✅ Prometheus is running${NC}"
-else
-    echo -e "${RED}❌ Prometheus health check failed${NC}"
-fi
-
 echo -e "${GREEN}🎉 Deployment completed successfully!${NC}"
 echo -e "${YELLOW}📊 Access your services:${NC}"
 echo -e "   Backend API: http://localhost:3000"
-echo -e "   Grafana: http://localhost:3001 (admin/admin)"
-echo -e "   Kibana: http://localhost:5601"
-echo -e "   Prometheus: http://localhost:9090"
-echo -e "   MQTT Broker: mqtt://localhost:1883"
