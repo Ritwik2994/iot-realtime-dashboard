@@ -8,7 +8,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: ${{ github.repository | lower }}
 
 # Define permissions for the workflow
 permissions:
@@ -109,13 +109,22 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
+    - name: Extract metadata for simulator
+      id: meta-simulator
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-simulator
+        tags: |
+          type=sha,prefix=simulator-
+
     - name: Build and push MQTT Simulator image
       uses: docker/build-push-action@v5
       with:
         context: .
         file: ./deployment/docker/Dockerfile.simulator
         push: true
-        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-simulator:${{ github.sha }}
+        tags: ${{ steps.meta-simulator.outputs.tags }}
+        labels: ${{ steps.meta-simulator.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
